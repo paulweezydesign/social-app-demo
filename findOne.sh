@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # 1. Data API App Id
-appid="<Data API App ID>"
+appid="data-wqbnb"
 
 # 2. API Key
-apikey="<Data API Key>"
+apikey="UCZHEJN83U55SNid1A9nFXXaFu1TRm6IqBOxNk79dVCFvagSlNIwjbBmGFwo6voX"
 
 # 3. Base URL
 baseurl="https://data.mongodb-api.com/app/$appid/endpoint/data/v1"
