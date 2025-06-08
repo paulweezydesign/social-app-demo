@@ -1,246 +1,54 @@
-# Lesson 5
+# The MongoDB Atlas Data API in the Jamstack: The Serverless Dream!
 
-<- Back to [previous lesson](https://github.com/mongodb-developer/social-app-demo/tree/4-lesson)
+Live Demo: [https://socialbutterfly.vercel.app/](https://socialbutterfly.vercel.app/)
+
+## Introduction
+
+Do you love the Jamstack? Do you love to create all of the boilerplate code required to connect to databases in their Jamstack applications?
+
+This workshop will show you how you can connect to MongoDB Atlas in your Jamstack application with minimal effort and without using any drivers.
+
+## What we'll cover in this workshop
+
+- ~15 minutes of slides explaining Jamstack, serverless, and how the MongoDB Atlas Data API fits into these.
+- Hands-on lesson resulting in you building a fully functional, deployed application.
+
+## Prerequisites
+
+In order to successfully complete the tasks in this workshop, you should have:
+
+- Familiarity with JavaScript
+- Accounts (All Free):
+  - [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register2)
+  - [GitHub](https://github.com/signup)
+  - [Vercel](https://vercel.com/signup)
+  - [Auth0](https://auth0.com/signup)
+- Git and GitHub knowledge (fork, clone, branch, commit, etc.)
+- Node.js installed on your computer (14.x / 16.x)
+- Code Editor (VS Code recommended)
+
+That's it 🙌 *(no prior knowledge of MongoDB is required)*
+
+## Slides
+
+- [Workshop Slides](https://docs.google.com/presentation/d/1UuJl2kyuUfkDJah6WqSGa59ZTKtLK2SN-mMgUtAGqR0/edit?usp=sharing)
+
+## Hands-on lesson
+
+This repo is broken up into several branches. Each branch contains a set of lesson and builds upon the previous lesson.
+
+Throughout the workshop, you'll be working on the following lessons:
+1. [Lesson 1 - Fork & Clone Repo](https://github.com/mongodb-developer/social-app-demo/tree/1-lesson)
+2. [Lesson 2 - Create Cluster & Enable Data API](https://github.com/mongodb-developer/social-app-demo/tree/2-lesson)
+3. [Lesson 3 - Load Sample Data](https://github.com/mongodb-developer/social-app-demo/tree/3-lesson)
+4. [Lesson 4 - Test Data API Endpoint](https://github.com/mongodb-developer/social-app-demo/tree/4-lesson)
+5. [Lesson 5 - Setup CRUD Endpoints](https://github.com/mongodb-developer/social-app-demo/tree/5-lesson)
+6. [Lesson 6 - Overview of Data API App](https://github.com/mongodb-developer/social-app-demo/tree/6-lesson)
+7. [Lesson 7 - Setup Custom User Authentication](https://github.com/mongodb-developer/social-app-demo/tree/7-lesson)
+8. [Lesson 8 - Add "Like" Functionality](https://github.com/mongodb-developer/social-app-demo/tree/8-lesson)
+9. [Lesson 9 - Create a Search Index and Implement Search Functionality](https://github.com/mongodb-developer/social-app-demo/tree/9-lesson)
+10. [Lesson 10 - Deploy to Vercel!](https://github.com/mongodb-developer/social-app-demo/tree/10-lesson)
 
 ---
 
-## Goal
-
-The goal of this lesson is to get your local application up and running. You should have basic CRUD functionality working by the end of this lesson.
-
-> Be sure to switch to the `5-lesson` branch in your local environment.
-
-## Task 1: Install dependencies
-
-To install the dependencies for this lesson, run the following command in the terminal from the root of the project:
-
-```bash
-npm install
-```
-
-## Task 2: Add local environment variable
-
-In order to connect using the Atlas Data API, we must provide a `MONGODB_DATA_API_KEY` environment variable with our API key.
-
-You will find a [`.env.local.example`](.env.local.example) file in the root of the project. Rename this file to `.env.local`, add your API key to the `MONGODB_DATA_API_KEY` variable, and add your Data API URL Endpoint to the `MONGODB_DATA_API_URL` variable.
-
-If your `MONGODB_DATA_SOURCE` is not `Cluster0`, update it with your MongoDB Cluster name.
-
-## Serverless functions
-
-Next.js has a native api route for handling serverless functions. Within `pages/api/flutter` you will find an [`index.js`](./pages/api/flutter/index.js) file. This file will contain all of the basic CRUD routes for our application to connect to our Atlas Data API.
-
-## Task 3: Define the standard fetch variables that will be used for all requests.
-
-> You can reference the [Atlas Data API docs](https://www.mongodb.com/docs/atlas/api/data-api-resources) for more information.
-
-In the `fetchOptions` variable, you will need to define the `method` and `headers` properties. The method should be set to `POST` and the headers should include a `Content-Type`, `Access-Control-Request-Headers`, and `api-key`.
-
-> You can access your environment variables using the `process.env` object.
-
-In the `fetchBody` variable, you will need to define the `dataSource`, which is your Cluster name, the `database` name, and the `collection` name.
-
-In the `baseUrl` variable, we'll use our Data API URL Endpoint environment variable.
-
-<details>
-<summary>Show solution</summary>
-
-```js
-const fetchOptions = {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Access-Control-Request-Headers": "*",
-    "api-key": process.env.MONGODB_DATA_API_KEY,
-  },
-};
-const fetchBody = {
-  dataSource: process.env.MONGODB_DATA_SOURCE,
-  database: 'social_butterfly',
-  collection: 'flutters',
-};
-const baseUrl = `${process.env.MONGODB_DATA_API_URL}/action`;
-```
-</details>
-
-## Task 4: Create the `find` endpoint
-
-Within the `GET` case of the `switch` statement, you should use `fetch` to make a request to the `find` Data API endpoint using the `baseUrl`, `fetchOptions`, and `fetchBody` variables. 
-
-Add to the body object a `sort` field which should contain an object that sorts descending on the `postedAt` field. You will need to `stringify` the body of the request.
-
-> Hint: Since this is an `async` function, you can use the `await` keyword.
-
-After you have received the `json` from the request, return the `json` to the client along with a status code of `200`.
-
-> Hint: The response will contain a top level `documents` property that contains the documents returned from the request.
-
-### Test
-
-To test your application, from the terminal, run the following command:
-
-```bash
-npm run dev
-```
-
-You can now navigate to `http://localhost:3000/api/flutter/` and see the response. You can also open `http://localhost:3000` to see the application with limited functionality.
-
-<details>
-<summary>Show solution</summary>
-
-```js
-case "GET":
-  const readData = await fetch(`${baseUrl}/find`, {
-    ...fetchOptions,
-    body: JSON.stringify({
-      ...fetchBody,
-      sort: { postedAt: -1 },
-    }),
-  });
-  const readDataJson = await readData.json();
-  res.status(200).json(readDataJson.documents);
-  break;
-```
-</details>
-
-## Task 5: Create the `insertOne` endpoint
-
-Create within the `switch` statement a `POST` request case.
-
-Within the `POST` case, create a `flutter` variable and set it equal to the `req.body` property. Our application will pass the new document using the body property of the request.
-
-Within the `POST` case, you should use `fetch` to make a request to the `insertOne` Data API endpoint using the `baseUrl`, `fetchOptions`, and `fetchBody` variables. You will need to `stringify` the body of the request. 
-
-Add to the `body` object a `document` field with its value set to the `flutter` variable.
-
-After you have received the `json` from the request, return the `json` to the client along with a status code of `200`.
-
-> Hint: The response will not contain the document this time, but an indicaiton of what actions were performed on the database.
-
-### Test
-
-Test your application. If it is not already running, from the terminal, run the following command:
-
-```bash
-npm run dev
-```
-
-You can now navigate to `http://localhost:3000` and test creating a new flutter.
-
-<details>
-<summary>Show solution</summary>
-
-```js
-case "POST":
-  const flutter = req.body;
-  const insertData = await fetch(`${baseUrl}/insertOne`, {
-    ...fetchOptions,
-    body: JSON.stringify({
-      ...fetchBody,
-      document: flutter,
-    }),
-  });
-  const insertDataJson = await insertData.json();
-  res.status(200).json(insertDataJson);
-  break;
-```
-</details>
-
-## Task 6: Create the `updateOne` endpoint
-
-Create within the `switch` statement a `PUT` request case.
-
-Within the `POST` case, you should use `fetch` to make a request to the `updateOne` Data API endpoint using the `baseUrl`, `fetchOptions`, and `fetchBody` variables. You will need to `stringify` the body of the request. 
-
-Add to the `body` object a `filter` to define which document we want to update. This should filter by the `_id` field of the document using the `req.body._id`.
-
-> Hint: You can define an `objectId` using the MongoDB `$oid` operator.
-
-Also, add to the `body` object a `update` field to define the fields of the document that will be updated. Use the `$set` operator to update the flutters `body` field to `req.body.body`.
-
-After you have received the `json` from the request, return the `json` to the client along with a status code of `200`.
-
-> Hint: The response will not contain the document this time, but an indicaiton of what actions were performed on the database.
-
-### Test
-
-Test your application. If it is not already running, from the terminal, run the following command:
-
-```bash
-npm run dev
-```
-
-You can now navigate to `http://localhost:3000` and test editing and updating an existing flutter.
-
-<details>
-<summary>Show solution</summary>
-
-```js
-case "PUT":
-  const updateData = await fetch(`${baseUrl}/updateOne`, {
-    ...fetchOptions,
-    body: JSON.stringify({
-      ...fetchBody,
-      filter: { _id: { $oid: req.body._id } },
-      update: {
-        $set: {
-          body: req.body.body,
-        },
-      },
-    }),
-  });
-  const updateDataJson = await updateData.json();
-  res.status(200).json(updateDataJson);
-  break;
-```
-</details>
-
-## Task 7: Create the `deleteOne` endpoint
-
-Create within the `switch` statement a `DELETE` request case.
-
-Within the `DELETE` case, you should use `fetch` to make a request to the `deleteOne` Data API endpoint using the `baseUrl`, `fetchOptions`, and `fetchBody` variables. You will need to `stringify` the body of the request. 
-
-Add to the `body` object a `filter` to define which document we want to update. This should filter by the `_id` field of the document using the `req.body._id`.
-
-> Hint: You can define an `objectId` using the MongoDB `$oid` operator.
-
-After you have received the `json` from the request, return the `json` to the client along with a status code of `200`.
-
-> Hint: The response will not contain the document this time, but an indicaiton of what actions were performed on the database.
-
-### Test
-
-Test your application. If it is not already running, from the terminal, run the following command:
-
-```bash
-npm run dev
-```
-
-You can now navigate to `http://localhost:3000` and test deleting an existing flutter.
-
-> Notice that you can delete any flutter, including ones that you did not create.
-
-<details>
-<summary>Show solution</summary>
-
-```js
-case "DELETE":
-  const deleteData = await fetch(`${baseUrl}/deleteOne`, {
-    ...fetchOptions,
-    body: JSON.stringify({
-      ...fetchBody,
-      filter: { _id: { $oid: req.body._id } },
-    }),
-  });
-  const deleteDataJson = await deleteData.json();
-  res.status(200).json(deleteDataJson);
-  break;
-```
-</details>
-
----
-
-Great job! Let's move on to the [next lesson](https://github.com/mongodb-developer/social-app-demo/tree/6-lesson) ->
-
-> Be sure to commit your branch changes and switch to the `6-lesson` branch in your local environment.
+Let's get started with the [first lesson](https://github.com/mongodb-developer/social-app-demo/tree/1-lesson) ->
